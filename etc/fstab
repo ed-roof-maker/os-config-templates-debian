@@ -1,0 +1,40 @@
+# Accessible filesystems, by reference, are maintained under '/dev/disk'
+# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info
+
+# Note: fsck does not work with xfs filesystems
+# 
+#       EXT4 must be used for root system volume. Otherwise you have no control to suppress remount
+#       as read-only upon filesystem error.    
+#
+
+# <file system>	   				<mount point>   <type>  <options>  							<dump>  <pass>
+/dev/mapper/vg-sys	   			/               ext4     defaults,nodev,errors=continue,async,unbindable,x-systemd.device-timeout=0	0	1
+
+# TODO: Add nodev,nosuid,noexec when finished with system configuration
+# Triggering an initramfs boot reimage, will fail, if mount options are not opened.
+# Modify below to use system original unique ids - /dev/disk/by-uuid/<uuid>
+UUID=<ID>       /boot 	   	ext4     defaults,sync,errors=continue,unbindable,x-systemd.device-timeout=0			0	1
+
+UUID=<ID>       /boot/efi   	vfat     defaults,umask=0077,shortname=winnt,sync,unbindable,errors=continue,x-systemd.device-timeout=0			0	1
+/dev/mapper/vg-swap  	swap           swap     defaults,nosuid,sync,unbindable,x-systemd.device-timeout=0		0	2
+
+
+
+# SystemD Ordered Parallel Mount - /lib/systemd/system/*.mount
+# Do not try to mount /etc/selinux, /lib/systemd, /usr, /usr/share, /usr/local/share it will not work
+
+# Below mount orderings & options are defined and mastered by systemd.
+# Below mount types are defined and mastered by fstab.
+
+tmpfs			       		/tmp            tmpfs     defaults,nodev,nosuid,async,unbindable,uid=root,gid=root,size=48%,mode=777,x-systemd.device-timeout=0	 	0	3
+
+/dev/mapper/vg-var    	/var            ext4     defaults,nodev,nosuid,sync,unbindable,x-systemd.device-timeout=0		0	4
+tmpfs			       		/var/cache      tmpfs    defaults,nodev,nosuid,noexec,async,unbindable,uid=root,gid=root,size=1G,mode=755,x-systemd.device-timeout=20	 	0	3
+
+
+# Default home doesn't need exec
+# They should use tmpfs. You should define a standard home setup to preload into tmpfs.
+# This home template should be more than 500MB since firefox profiles are around 100MB each per user.
+/dev/mapper/vg-home   			/home           ext4     defaults,rw,nodev,nosuid,noexec,async,unbindable,x-systemd.device-timeout=0	0	5
+
+
